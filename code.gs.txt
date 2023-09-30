@@ -1,0 +1,33 @@
+function onOpen() {
+  var ui = SpreadsheetApp.getUi();
+  ui.createMenu('CSV Importer')
+    .addItem('Import CSV', 'showSidebar')
+    .addToUi();
+}
+
+function showSidebar() {
+  var html = HtmlService.createHtmlOutputFromFile('index')
+    .setTitle('CSV Importer');
+  SpreadsheetApp.getUi().showSidebar(html);
+}
+
+function importCSV(form, targetSheetName) {
+  var csvFile = form.csvFile;
+  var file = DriveApp.createFile(csvFile);
+  var csvData = Utilities.parseCsv(file.getBlob().getDataAsString());
+  file.setTrashed(true);
+
+  // Choose target sheet or create a new one if it doesn't exist
+  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = spreadsheet.getSheetByName(targetSheetName);
+
+  if (!sheet) {
+    sheet = spreadsheet.insertSheet(targetSheetName);
+  }
+
+  // Perform data validation and mapping here if needed
+
+  // Append data to the selected sheet
+  var lastRow = sheet.getLastRow();
+  sheet.getRange(lastRow + 1, 1, csvData.length, csvData[0].length).setValues(csvData);
+}
